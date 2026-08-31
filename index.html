@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Horizons - Interactive Learning Lab</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Cyberpunk / AI Neon Theme */
+            --bg-dark: #080811;
+            --panel-bg: #121222;
+            --neon-blue: #00f3ff;
+            --neon-purple: #9d00ff;
+            --neon-pink: #ff00ea;
+            --neon-green: #39ff14;
+            --neon-red: #ff073a;
+            --text-main: #ffffff;
+            --text-muted: #9fa8b6;
+            --radius-lg: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+            background-image: 
+              radial-gradient(circle at 15% 40%, rgba(0, 243, 255, 0.08), transparent 30%),
+              radial-gradient(circle at 85% 60%, rgba(157, 0, 255, 0.08), transparent 30%);
+        }
+
+        #particles {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .header-banner {
+            background-color: rgba(8, 8, 17, 0.95);
+            border-bottom: 2px solid var(--neon-purple);
+            padding: 15px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 0 25px rgba(157, 0, 255, 0.3);
+            z-index: 10;
+        }
+
+        .header-banner h1 {
+            margin: 0;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #fff;
+            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-purple);
+        }
+
+        .stats {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: bold;
+            font-size: 1.2rem;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
+        }
+
+        #app-container {
+            max-width: 900px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .level-card {
+            background: var(--panel-bg);
+            border: 2px solid #282845;
+            border-radius: var(--radius-lg);
+            padding: 2.2rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .level-card:hover {
+            transform: scale(1.03) translateY(-4px);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 25px rgba(0, 243, 255, 0.35), inset 0 0 10px rgba(0, 243, 255, 0.15);
+        }
+
+        .level-card h2, .level-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px var(--neon-blue);
+            margin-top: 1rem;
+            text-transform: uppercase;
+        }
+
+        .level-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid var(--neon-purple);
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .action-btn {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            padding: 14px;
+            background: rgba(18, 18, 34, 0.9);
+            border: 2px solid #3d3d63;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            color: white;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: 0.5s;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            border-color: var(--neon-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 243, 255, 0.3);
+            color: var(--neon-blue);
+        }
+        
+        .action-btn:hover:not(:disabled)::before { left: 100%; }
+        .action-btn:active:not(:disabled) { transform: translateY(1px); }
+
+        .btn-correct { background-color: rgba(57, 255, 20, 0.2) !important; border-color: var(--neon-green) !important; box-shadow: 0 0 15px var(--neon-green) !important; color: var(--neon-green) !important; }
+        .btn-wrong { background-color: rgba(255, 7, 58, 0.2) !important; border-color: var(--neon-red) !important; box-shadow: 0 0 15px var(--neon-red) !important; color: var(--neon-red) !important; }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 600px) {
+            .nav-buttons { flex-direction: column; }
+            .nav-buttons .action-btn { width: 100% !important; margin-top: 0; }
+        }
+
+        .reading-container {
+            background: var(--panel-bg);
+            padding: 2.2rem;
+            border-radius: var(--radius-lg);
+            border: 2px solid #282845;
+            margin-bottom: 2rem;
+            line-height: 1.8;
+            font-size: 1.1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        .reading-container h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-pink);
+            text-shadow: 0 0 10px var(--neon-pink);
+        }
+
+        .word-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+            padding: 1.2rem;
+            background: rgba(0, 243, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid var(--neon-blue);
+        }
+
+        .cloud-word {
+            background: var(--bg-dark);
+            color: var(--neon-blue);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+            border: 1px solid var(--neon-blue);
+            transition: all 0.3s;
+        }
+
+        .cloud-word.found {
+            background: rgba(57, 255, 20, 0.2);
+            color: var(--neon-green);
+            border-color: var(--neon-green);
+            box-shadow: 0 0 10px var(--neon-green);
+            text-decoration: line-through;
+        }
+
+        .interactive-word {
+            cursor: pointer;
+            padding: 0 2px;
+            border-bottom: 1px dashed var(--neon-blue);
+            transition: background 0.2s;
+        }
+
+        .interactive-word.revealed {
+            background: var(--neon-blue);
+            color: #000;
+            font-weight: bold;
+        }
+
+        hr { border: 0; height: 1px; background: #2f2f4d; margin: 1.8rem 0; }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            border: 2px solid #3d3d63;
+            border-radius: 8px;
+            background: var(--bg-dark);
+            color: var(--neon-blue);
+            margin-top: 1rem;
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+        }
+
+        .flashcard-scene {
+            width: 100%;
+            height: 280px;
+            perspective: 1000px;
+            margin: 1.8rem 0;
+        }
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        .flashcard.is-flipped { transform: rotateY(180deg); }
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: var(--panel-bg);
+            border: 2px solid var(--neon-purple);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 0 20px rgba(157, 0, 255, 0.2);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2rem;
+            color: var(--neon-pink);
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .flashcard-back {
+            transform: rotateY(180deg);
+            background: var(--bg-dark);
+            color: var(--neon-blue);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+        }
+
+        .sentence-dropzone, .word-bank {
+            min-height: 80px;
+            border: 2px dashed #3d3d63;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: var(--bg-dark);
+        }
+        .draggable-word {
+            padding: 10px 14px;
+            background: var(--panel-bg);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.95rem;
+            font-weight: bold;
+            transition: transform 0.1s;
+            user-select: none;
+        }
+        .draggable-word:hover {
+            background: rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .ai-logo-frame {
+            width: 180px;
+            height: 180px;
+            object-fit: contain;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 15px;
+            border: 3px solid var(--neon-blue);
+            box-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
+            margin: 0 auto 1.5rem auto;
+            display: block;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.96); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop { animation: popIn 0.3s ease-out forwards; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-8px); }
+        }
+        .shake { animation: shake 0.4s ease-in-out; }
+    </style>
+</head>
+<body>
+    <canvas id="particles"></canvas>
+    
+    <header class="header-banner">
+        <h1>AI LABS // 2026</h1>
+        <div class="stats">
+            <span id="xp-counter">⭐ 0 XP</span>
+        </div>
+    </header>
+    
+    <main id="app-container"></main>
+
+    <script>
+        function initParticles() {
+            const canvas = document.getElementById('particles');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particlesArray = [];
+            const colors = ['#00f3ff', '#9d00ff', '#ff00ea', '#39ff14'];
+
+            for (let i = 0; i < 45; i++) {
+                particlesArray.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2 + 1,
+                    speedY: Math.random() * 0.8 - 0.4,
+                    speedX: Math.random() * 0.8 - 0.4,
+                    color: colors[Math.floor(Math.random() * colors.length)]
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (let i = 0; i < particlesArray.length; i++) {
+                    let p = particlesArray[i];
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+
+                    if (p.x < 0) p.x = canvas.width;
+                    if (p.x > canvas.width) p.x = 0;
+                    if (p.y < 0) p.y = canvas.height;
+                    if (p.y > canvas.height) p.y = 0;
+                }
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('particles');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // --- AI LOGOS & TOOLS DATABASE ---
+        const aiDB = [
+            { name: "ChatGPT (OpenAI)", category: "Conversational AI / LLM", img: "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" },
+            { name: "Google Gemini", category: "Multimodal AI", img: "https://upload.wikimedia.org/wikipedia/commons/8/8a/Google_Gemini_logo.svg" },
+            { name: "Anthropic Claude", category: "Constitutional AI / Assistant", img: "https://upload.wikimedia.org/wikipedia/commons/7/78/Anthropic_logo.svg" },
+            { name: "Midjourney", category: "AI Image Generation", img: "https://upload.wikimedia.org/wikipedia/commons/e/e6/Midjourney_Emblem.png" },
+            { name: "Microsoft Copilot", category: "Productivity AI Assistant", img: "https://upload.wikimedia.org/wikipedia/commons/2/2a/Microsoft_365_Copilot_Icon.svg" },
+            { name: "DALL-E", category: "AI Artwork Generation", img: "https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" },
+            { name: "GitHub Copilot", category: "AI Code Companion", img: "https://upload.wikimedia.org/wikipedia/commons/2/29/GitHub_Copilot_logo.svg" },
+            { name: "Perplexity AI", category: "AI Search Engine", img: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Perplexity_AI_logo.svg" },
+            { name: "DeepSeek", category: "Reasoning & Coding LLM", img: "https://upload.wikimedia.org/wikipedia/commons/b/be/DeepSeek_logo.svg" },
+            { name: "Hugging Face", category: "Open Source AI Hub", img: "https://upload.wikimedia.org/wikipedia/commons/d/d8/Hugging_Face_logo.svg" },
+            { name: "Runway", category: "Generative Video AI", img: "https://upload.wikimedia.org/wikipedia/commons/3/36/Runway_Gen-2_logo.png" },
+            { name: "ElevenLabs", category: "AI Voice Synthesis", img: "https://upload.wikimedia.org/wikipedia/commons/5/5f/ElevenLabs_logo.svg" },
+        ];
+
+        const ALL_AIS = [
+            "ChatGPT (OpenAI)", "Google Gemini", "Anthropic Claude", "Midjourney", 
+            "Microsoft Copilot", "DALL-E", "GitHub Copilot", "Perplexity AI", 
+            "DeepSeek", "Hugging Face", "Runway", "ElevenLabs", "Grok (xAI)", "Sora"
+        ];
+
+        // --- AI EMOJI / APPLICATION GUESS ---
+        const aiAppsDB = [
+            { name: "AI Story & Text Generation", emoji: "🤖✍️📖" },
+            { name: "AI Art & Image Synthesis", emoji: "🤖🎨🖼️" },
+            { name: "Autonomous Driving", emoji: "🤖🚗🛣️" },
+            { name: "Medical X-Ray Analysis", emoji: "🤖🏥🩻" },
+            { name: "AI Voice Cloning", emoji: "🤖🎙️🗣️" },
+            { name: "AI Coding Assistant", emoji: "🤖💻⚡" },
+            { name: "Weather & Disaster Forecasting", emoji: "🤖🌪️🛰️" },
+            { name: "Language Translation", emoji: "🤖🌐🗣️" },
+            { name: "Deepfake Detection", emoji: "🤖🎭🔍" },
+            { name: "Smart Tutoring System", emoji: "🤖📚🧑‍🏫" },
+        ];
+
+        const ALL_AI_APPS = [
+            "AI Story & Text Generation", "AI Art & Image Synthesis", "Autonomous Driving",
+            "Medical X-Ray Analysis", "AI Voice Cloning", "AI Coding Assistant",
+            "Weather & Disaster Forecasting", "Language Translation", "Deepfake Detection", "Smart Tutoring System"
+        ];
+
+        // --- CHINESE TO ENGLISH VOCAB MATCH DB ---
+        const vocabMatchDB = [
+            { word: "symbolize", chinese: "象徵", icon: "✨" },
+            { word: "temples", chinese: "寺廟", icon: "🏯" },
+            { word: "shrines", chinese: "神社", icon: "⛩️" },
+            { word: "fortune", chinese: "財富/運氣", icon: "🍀" },
+            { word: "desires", chinese: "慾望", icon: "💭" },
+            { word: "purifies", chinese: "淨化", icon: "💧" },
+            { word: "special", chinese: "特別的", icon: "🌟" },
+            { word: "banish", chinese: "驅逐", icon: "🚫" },
+            { word: "nibble", chinese: "咬", icon: "🍰" },
+            { word: "approach", chinese: "方法", icon: "🛠️" },
+            { word: "tradition", chinese: "傳統", icon: "📜" },
+            { word: "obstacle", chinese: "障礙", icon: "🚧" },
+            { word: "tournament", chinese: "錦標賽", icon: "🏆" },
+            { word: "champion", chinese: "冠軍", icon: "🥇" },
+            { word: "commercial", chinese: "廣告", icon: "📺" },
+            { word: "upset", chinese: "爆冷門", icon: "😲" },
+            { word: "underdog", chinese: "不被看好的隊伍", icon: "🐕" },
+            { word: "sportsmanship", chinese: "體育精神 / 運動員風範", icon: "🤝" },
+            { word: "elimination", chinese: "淘汰", icon: "❌" },
+            { word: "struggle", chinese: "奮鬥", icon: "💪" },
+            { word: "pitch", chinese: "足球場", icon: "🏟️" },
+            { word: "shocked", chinese: "震驚的", icon: "😲" },
+            { word: "villain", chinese: "反派主角", icon: "🦹" },
+            { word: "passion", chinese: "熱情", icon: "❤️‍🔥" },
+            { word: "fame", chinese: "名聲", icon: "🌟" }
+        ];
+
+        // --- COURSE DATA (BASED ON TXT FILES) ---
+        const courseData = {
+          levels: [
+            {
+              id: "basic",
+              title: "The Rise of AI - Basic",
+              description: "Explore what AI is, how it supports creativity and learning, and how to use it safely.",
+              image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=80",
+              reading: [
+                { section: "The Rise of AI", text: "Artificial intelligence, or AI, is becoming a big part of everyday life. AI is technology that can help computers learn, answer questions, make pictures, solve problems, and do many kinds of tasks. In 2026, people will use AI in schools, hospitals, businesses, and creative work. AI can be very helpful, but it also brings important questions. Can AI help people be more creative? Can it make learning too easy? What good things can AI do, and what problems should we watch out for?" },
+                { section: "Can AI Help Creativity?", text: "Some people think AI is a great helper for creative work. Others worry that it may take away from human creativity. The truth is that AI works best when people use it as a helper. Writers can use AI to get ideas. Artists can use it to try different designs. Video makers can use it to plan scenes or write outlines. But people should not let AI do all the thinking. If everyone uses AI in the same way, many stories, pictures, and ideas may start to look alike. AI can use ideas it has learned from people, but it still needs human imagination. That is why AI should be seen as a smart tool, not as a replacement for people." },
+                { section: "Can AI Affect Learning?", text: "AI can also change how students learn. Some people worry that students may use AI to get answers without trying to understand the work. If students skip thinking, practicing, and solving problems, they may not learn as deeply. Still, AI can be very useful in school when it is used the right way. AI can act like a tutor. It can explain hard ideas in simple words, give practice questions, and help students learn at their own speed. Teachers can also use AI to save time and give students better support. AI should help students learn, not do all the work for them." },
+                { section: "The Good Things AI Can Do", text: "AI is helpful because it can do boring or repeated jobs quickly. It can help with typing information, making schedules, answering simple questions, and finding mistakes. This gives people more time to do work that needs planning, kindness, creativity, and good judgment. AI can also look at a lot of information very fast. In hospitals, AI can help doctors study pictures and health records so they can make better choices. In businesses, AI can help people notice patterns and plan for the future. AI can make work faster and help solve problems that would take people a long time to finish alone." },
+                { section: "Problems and Risks of AI", text: "Even though AI can help, it can also cause problems. One big concern is jobs. AI may take over some tasks that people used to do, especially simple or repeated tasks. This means some workers may need to learn new skills for different kinds of jobs. Another concern is privacy. AI often needs a lot of information to work well, so people must be careful about how their information is used. AI can also make mistakes or copy unfair ideas from the data it learns from. Some people use AI to make fake pictures, videos, or stories. This can make it harder to know what is true." },
+                { section: "What the Future May Look Like", text: "In the future, AI will probably be used even more. It will not take over everything, but it will become part of many jobs and daily activities. People are also working on ways to make AI safer. This includes protecting private information and making sure AI follows clear rules. The best future will happen when people use AI responsibly. AI is powerful, but humans still need to make wise choices. People have feelings, imagination, kindness, and values. AI can help us, but it should not replace what makes people special. If we guide AI carefully, it can be a useful tool for learning, working, and solving problems." }
+              ],
+              vocabulary: [
+                { word: "intelligence", chinese: "智能 / 智慧", icon: "🧠" },
+                { word: "creativity", chinese: "創造力", icon: "🎨" },
+                { word: "tutor", chinese: "家教 / 導師", icon: "🧑‍🏫" },
+                { word: "repeated", chinese: "重複的", icon: "🔁" },
+                { word: "privacy", chinese: "隱私權", icon: "🔒" },
+                { word: "replacement", chinese: "替代品", icon: "🔄" },
+                { word: "responsibly", chinese: "負責任地", icon: "⚖️" }
+              ],
+              questions: [
+                { type: "mc", q: "1. What is AI?", options: ["A kind of animal", "Technology that can help computers learn and solve problems", "A game students play at school", "A type of food"], answer: 1 },
+                { type: "mc", q: "2. How can AI help students when it is used the right way?", options: ["It can do all their homework for them.", "It can explain hard ideas and give practice questions.", "It can stop teachers from teaching.", "It can make students forget how to read."], answer: 1 },
+                { type: "mc", q: "3. What is one problem or risk of AI mentioned in the article?", options: ["AI can make the sun disappear.", "AI can only work in hospitals.", "AI may make fake pictures, videos, or stories.", "AI cannot answer questions."], answer: 2 },
+                { type: "fill", q: "4. Why should people not let AI do all the thinking? (Hint: stories/ideas might look...)", answer: "alike" },
+                { type: "fill", q: "5. Fill in the blank: The best future will happen when people use AI ________.", answer: "responsibly" }
+              ],
+              unscrambleWords: ["intelligence", "creativity", "privacy", "responsibly", "replacement"],
+              sentences: [
+                "AI works best when people use it as a helper.",
+                "AI should help students learn, not do all the work for them.",
+                "The best future will happen when people use AI responsibly."
+              ],
+              synonyms: [
+                { word: "intelligence", synonym: "intellect / brainpower" },
+                { word: "creativity", synonym: "imagination / originality" },
+                { word: "helper", synonym: "assistant / aide" },
+                { word: "tutor", synonym: "instructor / coach" },
+                { word: "repeated", synonym: "routine / recurring" },
+                { word: "concern", synonym: "worry / anxiety" },
+                { word: "fake", synonym: "artificial / counterfeit" },
+                { word: "wise", synonym: "sensible / prudent" }
+              ]
+            },
+            {
+              id: "intermediate",
+              title: "The Rise of AI - Intermediate",
+              description: "Analyze AI in education, medical breakthroughs, algorithmic bias, deepfakes, and human-machine synergy.",
+              image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
+              reading: [
+                { section: "Your New Digital Helper", text: "Imagine waking up and having a super-smart robot assistant that helps you brainstorm ideas for a story, checks your math homework, and even recommends the perfect playlist for your mood. Just a few years ago, this sounded like something out of a video game. Today, Artificial Intelligence 'AI,' is a real part of our everyday lives. From the video games we play to the apps we use for school, AI is everywhere. But with all this new technology comes some big questions: Is AI a helpful tool, or is it going to take away our creativity? Will it make us stop learning? What are the great things it can do, and what are the hidden dangers we need to watch out for? Let's dive in and explore the rise of AI." },
+                { section: "Is AI a Threat to Creativity?", text: "Many people worry that AI art and writing could replace human creativity. It will not replace us, but it does change how we create. AI can be a great brainstorming buddy, helping with prompts, sketches, or project ideas when you feel stuck. However, relying on AI too much can become a problem. If we let it create everything for us, our ideas may start to feel less original and more alike. AI can support creativity, but imagination, emotion, and personal style still need to come from people." },
+                { section: "Is AI Harmful to Learning?", text: "AI is a major discussion in schools. If it can write an essay or solve a difficult fraction problem in seconds, students may wonder why they should learn to do it themselves. Using AI to cheat or avoid homework can weaken learning. Struggling through problems and choosing the right words helps train your brain; letting a computer do everything takes away that practice. Used well, AI can be a powerful study tool. It can explain difficult topics, create quizzes, help with languages, and break down science concepts step by step. Instead of stopping learning, AI can make it faster and clearer." },
+                { section: "The Awesome Benefits of AI", text: "AI is doing some incredible things in the world right now to make life easier and safer. Here are some of the biggest benefits: Doing the Boring Stuff: AI is good at doing repetitive chores like organizing files and sending reminders so humans have more time for creative tasks. Helping Doctors Save Lives: AI can look at X-rays or medical data incredibly fast, spotting illnesses early on. Keeping Us Safe: From helping self-driving cars avoid accidents to predicting bad weather and natural disasters, AI processes information instantly to keep people safe." },
+                { section: "The Hidden Dangers of AI", text: "Even though AI is amazing, it isn't perfect. There are some hidden problems we need to be careful about: Losing Jobs: Because AI is fast and smart, some jobs that humans used to do are now being done by computers, requiring workers to learn new skills. Privacy and Snooping: AI needs massive amounts of information to train, raising concerns about personal data. Copying Bad Habits (Bias): AI learns from humans. If the information it learns from unfair ideas or prejudices, the AI might accidentally copy those unfair ideas.We must make sure we teach AI to be fair to everyone. Fake News: Have you ever seen a super realistic picture online, only to find out it was totally fake? AI can create 'deepfakes' and spread false information, making it hard to know what is true and what is a lie." },
+                { section: "What Does the Future Look Like?", text: "Where are we heading? Don't worry, robots aren't taking over the world. The future is all about teamwork between humans and machines. As you grow up, you will see new rules and laws made to ensure AI is used safely. But the most important part of the future isn't the technology; it is us. No matter how smart AI gets, it will never have a human heart. It can't feel empathy, it doesn't know how to be a good friend, and it doesn't have its own dreams. The most successful people will use AI as a helpful tool while utilizing human kindness, creativity, and teamwork." }
+              ],
+              vocabulary: [
+                { word: "brainstorm", chinese: "腦力激盪", icon: "💡" },
+                { word: "original", chinese: "原創的", icon: "✨" },
+                { word: "repetitive", chinese: "重複繁瑣的", icon: "🔁" },
+                { word: "prejudice", chinese: "成見 / 偏見", icon: "⚖️" },
+                { word: "empathy", chinese: "同理心", icon: "💖" },
+                { word: "deepfake", chinese: "深度偽造", icon: "🎭" },
+                { word: "bias", chinese: "偏差", icon: "📐" }
+              ],
+              questions: [
+                { type: "mc", q: "1. What would be the synonym of the word 'empathy'?", options: ["Hatred", "Compassion", "Charity", "Affection"], answer: 1 },
+                { type: "mc", q: "2. The word 'Artificial' in Artificial Intelligence refers to:", options: ["Real", "Human-made", "Smart", "Original"], answer: 1 },
+                { type: "mc", q: "3. Which of the following is NOT mentioned as a Hidden Danger of AI?", options: ["Fake News", "Privacy issues", "Biases", "Lack of empathy"], answer: 3 },
+                { type: "fill", q: "4. What is one medical benefit of AI mentioned in the text? (Hint: AI can inspect...)", answer: "x-rays" },
+                { type: "fill", q: "5. What does the text call realistic but completely fake AI generated media?", answer: "deepfakes" }
+              ],
+              unscrambleWords: ["brainstorm", "repetitive", "prejudice", "empathy", "deepfake"],
+              sentences: [
+                "The future is all about teamwork between humans and machines.",
+                "Using AI to cheat or avoid homework can weaken learning.",
+                "AI can support creativity, but imagination and emotion must come from people."
+              ],
+              synonyms: [
+                { word: "empathy", synonym: "compassion" },
+                { word: "artificial", synonym: "human-made" },
+                { word: "danger", synonym: "hazard / risk" },
+                { word: "original", synonym: "authentic / creative" },
+                { word: "repetitive", synonym: "monotonous / routine" },
+                { word: "bias", synonym: "prejudice / unfairness" },
+                { word: "brainstorm", synonym: "ideate / generate" },
+                { word: "massive", synonym: "enormous / immense" }
+              ]
+            }
+          ]
+        };
+
+        // --- APPLICATION LOGIC ---
+        const appContainer = document.getElementById('app-container');
+        let currentLevel = null;
+        let userXP = parseInt(localStorage.getItem('aiLabXP')) || 0;
+        
+        let currentReadingIndex = 0; 
+        let currentQuestionIndex = 0;
+        let currentFlashcardIndex = 0;
+        let currentVocabUnscrambleIndex = 0;
+        let currentSentenceIndex = 0;
+        let aiChallengeIndex = 0;
+        let appChallengeIndex = 0;
+        let synonymChallengeIndex = 0;
+        let vocabMatchIndex = 0;
+        
+        let wordsToFind = [];
+        let activeAIs = [];
+        let activeAIApps = [];
+        let activeSynonyms = [];
+        let activeVocabMatch = [];
+
+        function init() {
+            initParticles();
+            updateXP(0);
+            renderHome();
+        }
+
+        function updateXP(amount) {
+            userXP += amount;
+            localStorage.setItem('aiLabXP', userXP);
+            document.getElementById('xp-counter').textContent = `⭐ ${userXP} XP`;
+        }
+
+        function renderHome() {
+            appContainer.innerHTML = `
+                <div class="card-grid animate-pop">
+                    ${courseData.levels.map(level => `
+                        <div class="level-card" onclick="startLevel('${level.id}')">
+                            <img src="${level.image}" alt="${level.title}" class="level-image" onerror="this.src='https://placehold.co/400x200/121222/00f3ff?text=AI+Module'">
+                            <h2>${level.title}</h2>
+                            <p style="color: var(--text-muted); line-height: 1.5;">${level.description}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function startLevel(levelId) {
+            currentLevel = courseData.levels.find(l => l.id === levelId);
+            renderMenu();
+        }
+
+        function renderMenu() {
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderHome()">← Switch Level</button>
+                <h1 style="text-align:center; font-family:'Orbitron', sans-serif; color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue);">${currentLevel.title.toUpperCase()}</h1>
+                <div class="card-grid animate-pop">
+                    <div class="level-card" onclick="startReading()">
+                        <div style="font-size: 3rem;">📖</div>
+                        <h3>Reading Mission</h3>
+                    </div>
+                    <div class="level-card" onclick="startQuiz()">
+                        <div style="font-size: 3rem;">❓</div>
+                        <h3>Knowledge Check</h3>
+                    </div>
+                    <div class="level-card" onclick="startFlashcards()">
+                        <div style="font-size: 3rem;">🎴</div>
+                        <h3>Vocab Flashcards</h3>
+                    </div>
+                    <div class="level-card" onclick="startVocabUnscramble()">
+                        <div style="font-size: 3rem;">🔀</div>
+                        <h3>Unscramble Vocab</h3>
+                    </div>
+                    <div class="level-card" onclick="startVocabMatch()">
+                        <div style="font-size: 3rem;">🀄</div>
+                        <h3>Vocab Match</h3>
+                    </div>
+                    <div class="level-card" onclick="startSentenceUnscramble()">
+                        <div style="font-size: 3rem;">🧩</div>
+                        <h3>Sentence Builder</h3>
+                    </div>
+                    <div class="level-card" onclick="startSynonymMatch()">
+                         <div style="font-size: 3rem;">🔗</div>
+                         <h3>Synonym Match</h3>
+                    </div>
+                    <div class="level-card" onclick="startAIChallenge()">
+                         <div style="font-size: 3rem;">🤖</div>
+                        <h3>Guess the AI</h3>
+                    </div>
+                    <div class="level-card" onclick="startAppChallenge()">
+                        <div style="font-size: 3rem;">💡</div>
+                         <h3>Emoji AI Guess</h3>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- ACTIVITY 1: READING WITH PAGINATION ---
+        function startReading() {
+            currentReadingIndex = 0; 
+            renderReading();
+        }
+
+        function renderReading() {
+            wordsToFind = currentLevel.vocabulary.map(v => v.word.toLowerCase());
+            const cloudHTML = currentLevel.vocabulary.map(v => 
+                `<span class="cloud-word" id="cloud-${v.word.replace(/\s+/g, '-').toLowerCase()}">${v.word}</span>`
+            ).join('');
+
+            const isFirst = currentReadingIndex === 0;
+            const isLast = currentReadingIndex === currentLevel.reading.length - 1;
+            const currentPassage = currentLevel.reading[currentReadingIndex];
+
+            const interactiveText = currentPassage.text.replace(/([a-zA-Z0-9-]+)/g, '<span class="interactive-word" onclick="checkWord(this)">$1</span>');
+
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem;">
+                        <span>Section ${currentReadingIndex + 1} of ${currentLevel.reading.length}</span>
+                    </div>
+
+                    <h2 style="margin-top:0; color: #fff;">Find & Highlight Key Vocab!</h2>
+                    <div class="word-cloud">
+                        ${cloudHTML}
+                    </div>
+                    
+                    <h2 style="color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink);">📌 ${currentPassage.section}</h2>
+                    <p style="font-size: 1.15rem; line-height: 1.85;">${interactiveText}</p>
+                    <hr>
+                    
+                    <div class="nav-buttons">
+                        <button class="action-btn" style="width:48%;" onclick="navigateReading(-1)" ${isFirst ? 'disabled style="opacity:0.5"' : ''}>Previous Section</button>
+                        ${isLast ? 
+                            `<button class="action-btn btn-correct" style="width:48%;" onclick="updateXP(25); startQuiz();">Complete & Take Quiz (+25 XP)</button>` : 
+                            `<button class="action-btn" style="width:48%;" onclick="navigateReading(1)">Next Section</button>`
+                        }
+                    </div>
+                </div>
+            `;
+        }
+
+        function navigateReading(direction) {
+            currentReadingIndex += direction;
+            renderReading();
+        }
+
+        function checkWord(element) {
+            const clickedWord = element.innerText.toLowerCase().trim();
+            const matchedVocab = wordsToFind.find(word => {
+                if (word === clickedWord) return true;
+                const phraseWords = word.split(' ');
+                return phraseWords.includes(clickedWord);
+            });
+
+            if (matchedVocab) {
+                element.classList.add('revealed');
+                const cloudEl = document.getElementById(`cloud-${matchedVocab.replace(/\s+/g, '-')}`);
+                if (cloudEl && !cloudEl.classList.contains('found')) {
+                    cloudEl.classList.add('found');
+                    updateXP(5);
+                }
+            } else {
+                element.classList.add('shake');
+                setTimeout(() => element.classList.remove('shake'), 400);
+            }
+        }
+
+        // --- ACTIVITY 2: QUIZ ---
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            renderQuiz();
+        }
+
+        function renderQuiz() {
+            const qData = currentLevel.questions[currentQuestionIndex];
+            const isLast = currentQuestionIndex === currentLevel.questions.length - 1;
+            const isFirst = currentQuestionIndex === 0;
+            let interactionHTML = '';
+            
+            if (qData.type === 'mc') {
+                interactionHTML = `
+                    <div id="mc-options" style="display:flex; flex-direction:column; gap:10px; margin-top: 1.5rem;">
+                        ${qData.options.map((opt, index) => `
+                            <button class="action-btn" style="text-align: left; text-transform:none; padding:1rem;" 
+                            onclick="checkQuizAnswer(this, ${index}, ${qData.answer}, 'mc')">${opt}</button>
+                        `).join('')}
+                    </div>`;
+            } else if (qData.type === 'fill') {
+                interactionHTML = `
+                    <div style="margin-top: 1.5rem;">
+                        <input type="text" id="fill-input" placeholder="Type key keyword..." autocomplete="off">
+                        <button class="action-btn" style="margin-top:1rem;" onclick="checkQuizAnswer(document.getElementById('fill-input'), null, '${qData.answer}', 'fill')">Check Answer</button>
+                    </div>`;
+            }
+
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem;">
+                        <span>Question ${currentQuestionIndex + 1} of ${currentLevel.questions.length}</span>
+                    </div>
+                    <p style="font-size: 1.25rem; font-weight: bold; color: var(--neon-blue); line-height:1.5;">${qData.q}</p>
+                    ${interactionHTML}
+                    
+                    <div class="nav-buttons">
+                        <button class="action-btn" style="width:48%;" onclick="navigateQuiz(-1)" ${isFirst ? 'disabled style="opacity:0.5"' : ''}>Previous</button>
+                        <button class="action-btn" style="width:48%;" onclick="navigateQuiz(1)">${isLast ? 'Finish Quiz' : 'Next Question'}</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkQuizAnswer(element, selectedIndex, correctAnswer, type) {
+            if (type === 'mc') {
+                const allButtons = element.parentElement.querySelectorAll('button');
+                allButtons.forEach(btn => btn.style.pointerEvents = 'none');
+
+                if (selectedIndex === correctAnswer) {
+                    element.classList.add('btn-correct');
+                    updateXP(15);
+                } else {
+                    element.classList.add('btn-wrong');
+                    element.classList.add('shake');
+                    allButtons[correctAnswer].classList.add('btn-correct');
+                }
+            } else if (type === 'fill') {
+                const userAnswer = element.value.trim().toLowerCase();
+                const actualAnswer = correctAnswer.toLowerCase();
+                if (userAnswer.includes(actualAnswer) || actualAnswer.includes(userAnswer)) {
+                    element.style.borderColor = 'var(--neon-green)';
+                    element.style.boxShadow = '0 0 15px var(--neon-green)';
+                    updateXP(15);
+                    alert("Correct Answer!");
+                } else {
+                    element.style.borderColor = 'var(--neon-red)';
+                    element.classList.add('shake');
+                    setTimeout(() => element.classList.remove('shake'), 400);
+                    alert(`Expected keyword: ${correctAnswer}`);
+                }
+            }
+        }
+
+        function navigateQuiz(direction) {
+            currentQuestionIndex += direction;
+            if (currentQuestionIndex >= currentLevel.questions.length) {
+                alert("Quiz Completed! Outstanding work.");
+                renderMenu();
+            } else {
+                renderQuiz();
+            }
+        }
+
+        // --- ACTIVITY 3: FLASHCARDS ---
+        function startFlashcards() {
+            currentFlashcardIndex = 0;
+            renderFlashcardUI();
+        }
+
+        function renderFlashcardUI() {
+            const vocab = currentLevel.vocabulary;
+            const currentCard = vocab[currentFlashcardIndex];
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop" style="text-align:center;">
+                    <h2 style="margin-top:0;">Vocabulary Terminal</h2>
+                    <p style="color:var(--text-muted);">Card ${currentFlashcardIndex + 1} of ${vocab.length} (Click card to flip)</p>
+                    
+                    <div class="flashcard-scene" onclick="flipCard(this)">
+                        <div class="flashcard">
+                            <div class="flashcard-face flashcard-front">
+                                ${currentCard.word}
+                            </div>
+                            <div class="flashcard-face flashcard-back">
+                                <div style="font-size: 3.5rem; margin-bottom: 10px;">${currentCard.icon}</div>
+                                <div>${currentCard.chinese}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="nav-buttons">
+                        <button class="action-btn" style="width:48%;" onclick="navigateFlashcard(-1)">Previous</button>
+                        <button class="action-btn" style="width:48%;" onclick="navigateFlashcard(1)">Next</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function flipCard(sceneElement) {
+            const card = sceneElement.querySelector('.flashcard');
+            card.classList.toggle('is-flipped');
+        }
+
+        function navigateFlashcard(direction) {
+            const vocab = currentLevel.vocabulary;
+            currentFlashcardIndex += direction;
+            if (currentFlashcardIndex < 0) currentFlashcardIndex = vocab.length - 1;
+            if (currentFlashcardIndex >= vocab.length) currentFlashcardIndex = 0;
+            renderFlashcardUI();
+        }
+
+        // --- ACTIVITY 4: UNSCRAMBLE VOCAB ---
+        function startVocabUnscramble() {
+            currentVocabUnscrambleIndex = 0;
+            renderVocabUnscramble();
+        }
+
+        function scrambleString(str) {
+            let arr = str.split('');
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            let scrambled = arr.join('');
+            if (scrambled === str && str.length > 3) return scrambleString(str);
+            return scrambled;
+        }
+
+        function renderVocabUnscramble() {
+            const wordsList = currentLevel.unscrambleWords;
+            const originalWord = wordsList[currentVocabUnscrambleIndex];
+            const scrambledWord = scrambleString(originalWord);
+            
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop" style="text-align:center;">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem;">
+                        <span>Decryption ${currentVocabUnscrambleIndex + 1} of ${wordsList.length}</span>
+                    </div>
+                    <h2 style="margin-top:0;">Decrypt the AI Vocabulary</h2>
+                    
+                    <div style="font-size: 2.8rem; font-weight: bold; letter-spacing: 8px; color: var(--neon-pink); margin: 1.8rem 0; font-family: 'Orbitron', sans-serif;">
+                        ${scrambledWord.toUpperCase()}
+                    </div>
+                    
+                    <input type="text" id="unscramble-input" placeholder="Type unscrambled word..." autocomplete="off">
+                    
+                    <button class="action-btn" onclick="checkVocabUnscramble('${originalWord}')">Verify Solution</button>
+                </div>
+            `;
+        }
+
+        function checkVocabUnscramble(correctWord) {
+            const inputEl = document.getElementById('unscramble-input');
+            const userWord = inputEl.value.trim().toLowerCase();
+            
+            if (userWord === correctWord.toLowerCase()) {
+                inputEl.style.borderColor = 'var(--neon-green)';
+                inputEl.style.boxShadow = '0 0 15px var(--neon-green)';
+                updateXP(15);
+                setTimeout(() => {
+                    currentVocabUnscrambleIndex++;
+                    if (currentVocabUnscrambleIndex >= currentLevel.unscrambleWords.length) {
+                        alert("Vocabulary Unscramble Solved! (+50 XP Bonus)");
+                        updateXP(50);
+                        renderMenu();
+                    } else {
+                        renderVocabUnscramble();
+                    }
+                }, 900);
+            } else {
+                inputEl.style.borderColor = 'var(--neon-red)';
+                inputEl.classList.add('shake');
+                setTimeout(() => inputEl.classList.remove('shake'), 400);
+            }
+        }
+
+        // --- ACTIVITY 5: VOCAB MATCH (CHINESE TO ENGLISH) ---
+        function startVocabMatch() {
+            vocabMatchIndex = 0;
+            // Shuffle the global vocabulary list for matching
+            activeVocabMatch = [...vocabMatchDB].sort(() => 0.5 - Math.random());
+            renderVocabMatch();
+        }
+
+        function renderVocabMatch() {
+            if (vocabMatchIndex >= activeVocabMatch.length) {
+                alert("Vocab Match Completed! Excellent translation skills. (+50 XP Bonus)");
+                updateXP(50);
+                return renderMenu();
+            }
+
+            const currentItem = activeVocabMatch[vocabMatchIndex];
+            
+            // Build distractors (3 random incorrect words)
+            let options = [currentItem.word];
+            let pool = vocabMatchDB.map(v => v.word).filter(w => w !== currentItem.word);
+            pool.sort(() => 0.5 - Math.random());
+            options.push(...pool.slice(0, 3));
+            options.sort(() => 0.5 - Math.random()); // Shuffle final 4 options
+
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop" style="padding-bottom: 1rem; text-align: center;">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem;">
+                        <span>Translation ${vocabMatchIndex + 1} of ${activeVocabMatch.length}</span>
+                    </div>
+
+                    <h2 style="color: #fff; margin-bottom: 0.5rem;">Match the English word:</h2>
+                    
+                    <div style="background: rgba(157, 0, 255, 0.08); padding: 2.5rem 1rem; border-radius: 8px; margin-bottom: 2rem; border: 2px dashed var(--neon-purple); display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                        <div style="font-size: 4rem; text-shadow: 0 0 20px rgba(255,0,234,0.6); user-select: none;">${currentItem.icon}</div>
+                        <div style="font-size: 2.5rem; font-weight: bold; color: var(--neon-pink); text-shadow: 0 0 10px rgba(255,0,234,0.4); letter-spacing: 2px;">${currentItem.chinese}</div>
+                    </div>
+
+                    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        ${options.map(opt => `
+                            <button class="action-btn" style="margin-top: 0; padding: 1.2rem; font-size: 1.05rem;" onclick="checkVocabMatchGuess(this, '${opt}', '${currentItem.word}')">${opt}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkVocabMatchGuess(btn, selected, correct) {
+            const allButtons = btn.parentElement.querySelectorAll('button');
+            allButtons.forEach(b => b.style.pointerEvents = 'none');
+
+            if (selected === correct) {
+                btn.classList.add('btn-correct');
+                updateXP(15);
+                setTimeout(() => {
+                    vocabMatchIndex++;
+                    renderVocabMatch();
+                }, 1000);
+            } else {
+                btn.classList.add('btn-wrong');
+                btn.classList.add('shake');
+                
+                // Highlight correct answer
+                allButtons.forEach(b => {
+                    if (b.innerText === correct) {
+                        b.classList.add('btn-correct');
+                    }
+                });
+
+                setTimeout(() => {
+                    vocabMatchIndex++;
+                    renderVocabMatch(); 
+                }, 2000);
+            }
+        }
+
+        // --- ACTIVITY 6: SENTENCE BUILDER ---
+        function startSentenceUnscramble() {
+            currentSentenceIndex = 0;
+            renderSentenceUnscramble();
+        }
+
+        function renderSentenceUnscramble() {
+            const sentencesList = currentLevel.sentences;
+            const sentence = sentencesList[currentSentenceIndex];
+            let words = sentence.split(' ');
+            
+            let scrambledWords = [...words];
+            for (let i = scrambledWords.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [scrambledWords[i], scrambledWords[j]] = [scrambledWords[j], scrambledWords[i]];
+            }
+
+            const wordsHTML = scrambledWords.map((w, i) => 
+                `<div class="draggable-word" id="word-${i}" onclick="moveWordOnClick(this)">${w}</div>`
+            ).join('');
+
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem;">
+                        <span>Sentence ${currentSentenceIndex + 1} of ${sentencesList.length}</span>
+                    </div>
+                    <h2 style="margin-top:0;">Construct the Key Insight</h2>
+                    <p style="color:var(--text-muted);">Click tokens in sequence to assemble the sentence.</p>
+                    
+                    <div id="sentence-answer-zone" class="sentence-dropzone"></div>
+                    <div id="sentence-word-bank" class="word-bank">${wordsHTML}</div>
+                    
+                    <button class="action-btn" onclick="checkSentenceUnscramble('${sentence.replace(/'/g, "\\'")}')">Validate Sentence</button>
+                </div>
+            `;
+        }
+
+        function moveWordOnClick(element) {
+            const answerZone = document.getElementById('sentence-answer-zone');
+            const wordBank = document.getElementById('sentence-word-bank');
+            
+            if (element.parentNode.id === 'sentence-word-bank') {
+                answerZone.appendChild(element);
+            } else {
+                wordBank.appendChild(element);
+            }
+        }
+
+        function checkSentenceUnscramble(correctSentence) {
+            const answerZone = document.getElementById('sentence-answer-zone');
+            const currentWords = Array.from(answerZone.children).map(el => el.innerText);
+            const userSentence = currentWords.join(' ');
+            
+            if (userSentence === correctSentence) {
+                answerZone.style.borderColor = 'var(--neon-green)';
+                answerZone.style.boxShadow = '0 0 15px var(--neon-green) inset';
+                updateXP(25);
+                setTimeout(() => {
+                    currentSentenceIndex++;
+                    if (currentSentenceIndex >= currentLevel.sentences.length) {
+                        alert("Sentence Builder Complete! (+50 XP Bonus)");
+                        updateXP(50);
+                        renderMenu();
+                    } else {
+                        renderSentenceUnscramble();
+                    }
+                }, 1200);
+            } else {
+                answerZone.style.borderColor = 'var(--neon-red)';
+                answerZone.classList.add('shake');
+                setTimeout(() => answerZone.classList.remove('shake'), 400);
+            }
+        }
+
+        // --- ACTIVITY 7: GUESS THE AI (LOGO CHALLENGE) ---
+        function startAIChallenge() {
+            aiChallengeIndex = 0;
+            activeAIs = [...aiDB].sort(() => 0.5 - Math.random());
+            renderAIChallenge();
+        }
+
+        function renderAIChallenge() {
+            if (aiChallengeIndex >= activeAIs.length) {
+                alert("AI Recon Completed! You recognized every top artificial intelligence platform.");
+                return renderMenu();
+            }
+
+            const currentAI = activeAIs[aiChallengeIndex];
+            
+            let options = [currentAI.name];
+            let pool = ALL_AIS.filter(name => name !== currentAI.name);
+            pool.sort(() => 0.5 - Math.random());
+            options.push(...pool.slice(0, 3));
+            options.sort(() => 0.5 - Math.random()); 
+
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop" style="padding-bottom: 1.5rem; text-align: center;">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem;">
+                        <span>AI Recognition ${aiChallengeIndex + 1} of ${activeAIs.length}</span>
+                    </div>
+
+                    <div style="background: rgba(0, 243, 255, 0.05); padding: 0.8rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid var(--neon-blue); text-align: center;">
+                        <span style="color: var(--neon-blue); font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight:bold;">Category: ${currentAI.category}</span>
+                    </div>
+
+                    <div id="ai-feedback-zone">
+                        <img src="${currentAI.img}" alt="AI Logo" class="ai-logo-frame" onerror="this.src='https://placehold.co/200x200/ffffff/121222?text=AI+LOGO'">
+                    </div>
+
+                    <h3 style="color: #fff; margin-bottom: 1.2rem;">Which AI platform or model is this?</h3>
+
+                    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        ${options.map(opt => `
+                            <button class="action-btn" style="margin-top: 0; padding: 1.1rem 0.8rem; font-size: 0.95rem; line-height: 1.3;" onclick="checkAIGuess(this, '${opt}', '${currentAI.name}')">${opt}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkAIGuess(btn, selected, correct) {
+            const allButtons = btn.parentElement.querySelectorAll('button');
+            allButtons.forEach(b => b.style.pointerEvents = 'none');
+
+            if (selected === correct) {
+                btn.classList.add('btn-correct');
+                updateXP(20);
+                setTimeout(() => {
+                    aiChallengeIndex++;
+                    renderAIChallenge();
+                }, 1000);
+            } else {
+                btn.classList.add('btn-wrong');
+                const feedbackZone = document.getElementById('ai-feedback-zone');
+                feedbackZone.innerHTML = `
+                    <div style="color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); font-size: 1.3rem; font-weight: bold; margin: 2rem 0; text-transform: uppercase; font-family: 'Orbitron', sans-serif;">
+                        Incorrect! This logo belongs to ${correct}.
+                    </div>`;
+                setTimeout(() => {
+                    aiChallengeIndex++;
+                    renderAIChallenge(); 
+                }, 2200);
+            }
+        }
+
+        // --- ACTIVITY 8: EMOJI AI GUESS CHALLENGE ---
+        function startAppChallenge() {
+            appChallengeIndex = 0;
+            activeAIApps = [...aiAppsDB].sort(() => 0.5 - Math.random());
+            renderAppChallenge();
+        }
+
+        function renderAppChallenge() {
+            if (appChallengeIndex >= activeAIApps.length) {
+                alert("Emoji AI Challenge Complete! You've decoded real-world AI applications.");
+                return renderMenu();
+            }
+
+            const currentApp = activeAIApps[appChallengeIndex];
+            
+            let options = [currentApp.name];
+            let pool = ALL_AI_APPS.filter(n => n !== currentApp.name);
+            pool.sort(() => 0.5 - Math.random());
+            options.push(...pool.slice(0, 3));
+            options.sort(() => 0.5 - Math.random()); 
+
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop" style="padding-bottom: 1.5rem; text-align: center;">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem;">
+                        <span>Emoji Concept ${appChallengeIndex + 1} of ${activeAIApps.length}</span>
+                    </div>
+
+                    <div id="app-feedback-zone" style="min-height: 200px; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5); border: 3px solid var(--neon-pink); border-radius: 12px; margin-bottom: 1.8rem; box-shadow: 0 0 20px rgba(255,0,234,0.3);">
+                        <span style="font-size: 4.5rem; text-shadow: 0 0 25px rgba(255, 0, 234, 0.8); user-select: none;">${currentApp.emoji}</span>
+                    </div>
+
+                    <h3 style="color: #fff; margin-bottom: 1.2rem;">Which AI capability is represented by these emojis?</h3>
+
+                    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        ${options.map(opt => `
+                            <button class="action-btn" style="margin-top: 0; padding: 1.1rem 0.6rem; font-size: 0.95rem; line-height: 1.3;" onclick="checkAppGuess(this, '${opt}', '${currentApp.name}')">${opt}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkAppGuess(btn, selected, correct) {
+            const allButtons = btn.parentElement.querySelectorAll('button');
+            allButtons.forEach(b => b.style.pointerEvents = 'none');
+
+            if (selected === correct) {
+                btn.classList.add('btn-correct');
+                updateXP(20);
+                setTimeout(() => {
+                    appChallengeIndex++;
+                    renderAppChallenge();
+                }, 1000);
+            } else {
+                btn.classList.add('btn-wrong');
+                const feedbackZone = document.getElementById('app-feedback-zone');
+                feedbackZone.innerHTML = `
+                    <span style="display: block; color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); font-size: 1.2rem; font-weight: bold; margin: 1.5rem 0; text-transform: uppercase; font-family: 'Orbitron', sans-serif;">
+                        Incorrect! Represents: ${correct}.
+                    </span>`;
+                setTimeout(() => {
+                    appChallengeIndex++;
+                    renderAppChallenge(); 
+                }, 2200);
+            }
+        }
+
+        // --- ACTIVITY 9: SYNONYM MATCH CHALLENGE ---
+        function startSynonymMatch() {
+            if (!currentLevel.synonyms || currentLevel.synonyms.length === 0) {
+                alert("No synonyms available for this level.");
+                return;
+            }
+            synonymChallengeIndex = 0;
+            activeSynonyms = [...currentLevel.synonyms].sort(() => 0.5 - Math.random());
+            renderSynonymMatch();
+        }
+
+        function renderSynonymMatch() {
+            if (synonymChallengeIndex >= activeSynonyms.length) {
+                alert("Synonym Master! Challenge Complete. (+50 XP Bonus)");
+                updateXP(50);
+                return renderMenu();
+            }
+
+            const currentPair = activeSynonyms[synonymChallengeIndex];
+            
+            let options = [currentPair.synonym];
+            let pool = currentLevel.synonyms
+                .map(s => s.synonym)
+                .filter(syn => syn !== currentPair.synonym);
+            
+            pool.sort(() => 0.5 - Math.random());
+            options.push(...pool.slice(0, 3));
+            options.sort(() => 0.5 - Math.random());
+
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop" style="padding-bottom: 1rem; text-align: center;">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem;">
+                        <span>Synonym Pair ${synonymChallengeIndex + 1} of ${activeSynonyms.length}</span>
+                    </div>
+
+                    <h2 style="color: #fff; margin-bottom: 0.5rem;">Find the closest synonym for:</h2>
+                    
+                    <div style="background: rgba(157, 0, 255, 0.08); padding: 1.8rem; border-radius: 8px; margin-bottom: 2rem; border: 2px dashed var(--neon-purple); text-align: center;">
+                        <strong style="color: var(--neon-pink); text-shadow: 0 0 15px rgba(255,0,234,0.5); font-family: 'Orbitron', sans-serif; font-size: 2.2rem; letter-spacing: 2px; text-transform: uppercase;">
+                            ${currentPair.word}
+                        </strong>
+                    </div>
+
+                    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        ${options.map(opt => `
+                            <button class="action-btn" style="margin-top: 0; padding: 1.2rem; font-size: 1.05rem;" onclick="checkSynonymGuess(this, '${opt}', '${currentPair.synonym}')">${opt}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkSynonymGuess(btn, selected, correct) {
+            const allButtons = btn.parentElement.querySelectorAll('button');
+            allButtons.forEach(b => b.style.pointerEvents = 'none');
+
+            if (selected === correct) {
+                btn.classList.add('btn-correct');
+                updateXP(15);
+                setTimeout(() => {
+                    synonymChallengeIndex++;
+                    renderSynonymMatch();
+                }, 1000);
+            } else {
+                btn.classList.add('btn-wrong');
+                btn.classList.add('shake');
+                
+                allButtons.forEach(b => {
+                    if (b.innerText === correct) {
+                        b.classList.add('btn-correct');
+                    }
+                });
+
+                setTimeout(() => {
+                    synonymChallengeIndex++;
+                    renderSynonymMatch(); 
+                }, 2000);
+            }
+        }
+
+        // Initialize application on load
+        init();
+    </script>
+</body>
+</html>
