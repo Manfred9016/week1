@@ -344,6 +344,22 @@
             display: block;
         }
 
+        /* NEW CSS for REAL or AI side-by-side */
+        .image-choice-card {
+            cursor: pointer; 
+            border: 3px solid transparent; 
+            border-radius: 12px; 
+            transition: all 0.3s; 
+            padding: 10px; 
+            background: rgba(0,0,0,0.3);
+        }
+        .image-choice-card:hover {
+            transform: scale(1.02);
+            background: rgba(0, 243, 255, 0.1);
+            border-color: rgba(0, 243, 255, 0.5);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+        }
+
         @keyframes popIn {
             0% { transform: scale(0.96); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
@@ -419,7 +435,7 @@
         });
 
         // --- AI LOGOS & TOOLS DATABASE ---
-        const aiDB = [
+       const aiDB = [
         { name: "ChatGPT (OpenAI)", category: "Conversational AI / LLM", img: "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" },
         { name: "Google Gemini", category: "Multimodal AI", img: "Images/gemini.png" },
         { name: "Anthropic Claude", category: "Constitutional AI / Assistant", img: "Images/Claude.png" },
@@ -470,6 +486,80 @@
             "AI Story & Text Generation", "AI Art & Image Synthesis", "Autonomous Driving",
             "Medical X-Ray Analysis", "AI Voice Cloning", "AI Coding Assistant",
             "Weather & Disaster Forecasting", "Language Translation", "Deepfake Detection", "Smart Tutoring System"
+        ];
+
+        // --- REAL OR AI IMAGE DATABASE ---
+        const realOrAIPairs = [
+            { 
+                aiImg: "Ai_Lisa.jpg",
+                realImg: "Lisa.jpg",
+                explanation: "Notice the overly smooth skin texture, slightly blurred background artifacts, and an unnatural perfection in the lighting on the AI image. The real photo has natural pores and realistic focal depth." 
+            },
+            { 
+                aiImg: "Ai_curry.jpg",
+                realImg: "Curry.jpg",
+                explanation: "The AI image shows a perfectly symmetrical composition with unrealistic lighting, while the real photo captures the natural imperfections and dynamic range of the actual basketball player." 
+            },
+            { 
+                aiImg: "Ai_Fuji.jpg",
+                realImg: "real_fuji.jpg",
+                explanation: "The AI-generated image of Mount Fuji has exaggerated colors and a slightly artificial sky gradient, while the real photo shows natural atmospheric haze and realistic color tones." 
+            },
+            { 
+                aiImg: "real_HK.jpg",
+                realImg: "Ai_HK.jpg",
+                explanation: "The AI-generated Hong Kong skyline has overly saturated colors and a uniform lighting effect, while the real photo captures the natural reflections, shadows, and atmospheric conditions of the cityscape." 
+            },
+            { 
+                aiImg: "Ai_Rose.jpg",
+                realImg: "Rose.jpg",
+                explanation: "The AI-generated rose has a hyper-realistic texture and perfect symmetry, while the real photo shows natural imperfections of Rose." 
+            },
+            { 
+                aiImg: "Ai_egypt.jpg",
+                realImg: "real_egypt.jpg",
+                explanation: "The AI-generated image of the Egyptian pyramids has an overly dramatic sky and exaggerated lighting, while the real photo captures the natural desert tones and realistic shadows cast by the sun." 
+            },
+            { 
+                aiImg: "Ai_shuttle.jpg",
+                realImg: "real_shuttle.jpg",
+                explanation: "The AI-generated image of the space shuttle has a surreal color palette and overly perfect details, while the real photo captures the natural textures and lighting conditions of the actual spacecraft." 
+            },
+            { 
+                aiImg: "Ai_frog.jpg",
+                realImg: "real_frog.jpg",
+                explanation: "The AI-generated frog has exaggerated features and a uniform color palette, while the real photo captures the natural textures and subtle variations in the frog's appearance." 
+            },
+            { 
+                aiImg: "Ai_Cha_Eunwoo.jpg",
+                realImg: "real_Cha Eunwoo.jpg",
+                explanation: "The AI-generated image of Cha Eunwoo has overly smooth skin and a slightly artificial lighting effect, while the real photo captures natural skin texture and realistic lighting conditions." 
+            },
+            { 
+                aiImg: "Ai_Danielle.jpg",
+                realImg: "real_Danielle.jpg",
+                explanation: "The AI-generated image of Danielle has a hyper-realistic appearance with perfect symmetry, while the real photo captures natural imperfections and realistic lighting." 
+            },
+            { 
+                aiImg: "Ai_Chaeryeong.jpg",
+                realImg: "real_Chaeryeong.jpg",
+                explanation: "The AI-generated image of Chaeryeong has overly smooth skin and a slightly artificial lighting effect, while the real photo captures natural skin texture and realistic lighting conditions." 
+            },
+            { 
+                aiImg: "Ai_women.jpg",
+                realImg: "real_women.jpg",
+                explanation: "The AI-generated image of the woman has a hyper-realistic appearance with perfect symmetry, while the real photo captures natural imperfections and realistic lighting." 
+            },
+            { 
+                aiImg: "Ai_Pangolin.jpg",
+                realImg: "real_pangolin.jpg",
+                explanation: "The AI-generated image of the pangolin has exaggerated features and a slightly artificial texture, while the real photo captures natural fur details and realistic lighting." 
+            },
+            { 
+                aiImg: "Ai_students.jpg",
+                realImg: "real_students.jpg",
+                explanation: "The AI-generated image of the students has a hyper-realistic appearance with perfect symmetry, while the real photo captures natural imperfections and realistic lighting." 
+            }, 
         ];
 
         // --- CHINESE TO ENGLISH VOCAB MATCH DB ---
@@ -623,12 +713,14 @@
         let appChallengeIndex = 0;
         let synonymChallengeIndex = 0;
         let vocabMatchIndex = 0;
+        let realOrAIIndex = 0;
         
         let wordsToFind = [];
         let activeAIs = [];
         let activeAIApps = [];
         let activeSynonyms = [];
         let activeVocabMatch = [];
+        let activeRealOrAI = [];
 
         function init() {
             initParticles();
@@ -701,6 +793,10 @@
                     <div class="level-card" onclick="startAppChallenge()">
                         <div style="font-size: 3rem;">💡</div>
                          <h3>Emoji AI Guess</h3>
+                    </div>
+                    <div class="level-card" onclick="startRealOrAI()">
+                        <div style="font-size: 3rem;">🕵️</div>
+                         <h3>Real or AI?</h3>
                     </div>
                 </div>
             `;
@@ -1346,6 +1442,110 @@
                     renderSynonymMatch(); 
                 }, 2000);
             }
+        }
+
+        // --- ACTIVITY 10: REAL OR AI? CHALLENGE (SIDE-BY-SIDE) ---
+        function startRealOrAI() {
+            realOrAIIndex = 0;
+            activeRealOrAI = [...realOrAIPairs].sort(() => 0.5 - Math.random());
+            renderRealOrAI();
+        }
+
+        function renderRealOrAI() {
+            if (realOrAIIndex >= activeRealOrAI.length) {
+                alert("Visual Analysis Complete! You're an expert at spotting AI. (+50 XP Bonus)");
+                updateXP(50);
+                return renderMenu();
+            }
+
+            const currentPair = activeRealOrAI[realOrAIIndex];
+            
+            // Randomly swap the left and right positions
+            const isAILeft = Math.random() > 0.5;
+            
+            const imgLeft = isAILeft ? currentPair.aiImg : currentPair.realImg;
+            const imgRight = isAILeft ? currentPair.realImg : currentPair.aiImg;
+            
+            const typeLeft = isAILeft ? 'AI' : 'REAL';
+            const typeRight = isAILeft ? 'REAL' : 'AI';
+
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop" style="padding-bottom: 1.5rem; text-align: center;">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem;">
+                        <span>Image Analysis ${realOrAIIndex + 1} of ${activeRealOrAI.length}</span>
+                    </div>
+
+                    <h2 style="color: #fff; margin-bottom: 1.5rem; text-shadow: 0 0 10px var(--neon-pink);">Which image is <span style="color: var(--neon-pink);">AI GENERATED</span>?</h2>
+                    
+                    <div id="real-ai-feedback-zone" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                        
+                        <!-- Left Image -->
+                        <div class="image-choice-card" onclick="checkPairGuess(this, '${typeLeft}', '${currentPair.explanation.replace(/'/g, "\\'")}')">
+                            <img src="${imgLeft}" alt="Option 1" style="width: 100%; height: 250px; object-fit: contain; border-radius: 8px;" onerror="this.src='https://placehold.co/500x350/121222/00f3ff?text=Image+1'">
+                            <div style="margin-top: 10px; font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: var(--text-muted);">IMAGE A</div>
+                        </div>
+
+                        <!-- Right Image -->
+                        <div class="image-choice-card" onclick="checkPairGuess(this, '${typeRight}', '${currentPair.explanation.replace(/'/g, "\\'")}')">
+                            <img src="${imgRight}" alt="Option 2" style="width: 100%; height: 250px; object-fit: contain; border-radius: 8px;" onerror="this.src='https://placehold.co/500x350/121222/00f3ff?text=Image+2'">
+                            <div style="margin-top: 10px; font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: var(--text-muted);">IMAGE B</div>
+                        </div>
+
+                    </div>
+
+                    <div id="real-ai-explanation" style="display: none; margin-top: 1.5rem; padding: 1.5rem; border-radius: 8px; border: 2px solid transparent;"></div>
+
+                </div>
+            `;
+        }
+
+        function checkPairGuess(cardEl, selectedType, explanation) {
+            // Prevent multiple clicks
+            const allCards = document.querySelectorAll('.image-choice-card');
+            allCards.forEach(c => c.style.pointerEvents = 'none');
+
+            const explanationBox = document.getElementById('real-ai-explanation');
+            explanationBox.style.display = 'block';
+
+            const isCorrect = selectedType === 'AI';
+
+            if (isCorrect) {
+                cardEl.style.borderColor = 'var(--neon-green)';
+                cardEl.style.boxShadow = '0 0 20px var(--neon-green)';
+                explanationBox.style.borderColor = 'var(--neon-green)';
+                explanationBox.style.backgroundColor = 'rgba(57, 255, 20, 0.1)';
+                explanationBox.innerHTML = `
+                    <h3 style="margin-top:0; color: var(--neon-green)">Correct! You spotted the AI.</h3>
+                    <p style="color: #fff; font-size: 1.1rem; line-height: 1.5;">${explanation}</p>
+                    <button class="action-btn" style="width:100%; margin-top: 1rem; border-color: var(--neon-blue);" onclick="advanceRealOrAI()">Next Pair ➔</button>
+                `;
+                updateXP(20);
+            } else {
+                cardEl.style.borderColor = 'var(--neon-red)';
+                cardEl.style.boxShadow = '0 0 20px var(--neon-red)';
+                cardEl.classList.add('shake');
+                explanationBox.style.borderColor = 'var(--neon-red)';
+                explanationBox.style.backgroundColor = 'rgba(255, 7, 58, 0.1)';
+                explanationBox.innerHTML = `
+                    <h3 style="margin-top:0; color: var(--neon-red)">Incorrect! That was the real photo.</h3>
+                    <p style="color: #fff; font-size: 1.1rem; line-height: 1.5;">${explanation}</p>
+                    <button class="action-btn" style="width:100%; margin-top: 1rem; border-color: var(--neon-blue);" onclick="advanceRealOrAI()">Next Pair ➔</button>
+                `;
+                
+                // Highlight the correct one
+                allCards.forEach(c => {
+                    if (c !== cardEl) {
+                        c.style.borderColor = 'var(--neon-green)';
+                        c.style.boxShadow = '0 0 20px var(--neon-green)';
+                    }
+                });
+            }
+        }
+
+        function advanceRealOrAI() {
+            realOrAIIndex++;
+            renderRealOrAI();
         }
 
         // Initialize application on load
