@@ -11,7 +11,7 @@
             --bg-dark: #080811;
             --panel-bg: #121222;
             --neon-blue: #00f3ff;
-            --neon-purple: #9d00ff;
+            --neon-purple: #ff9900;
             --neon-pink: #ff00ea;
             --neon-green: #39ff14;
             --neon-red: #ff073a;
@@ -434,6 +434,39 @@
             canvas.height = window.innerHeight;
         });
 
+        // --- AI LOGOS & TOOLS DATABASE ---
+       const aiDB = [
+        { name: "ChatGPT (OpenAI)", category: "Conversational AI / LLM", img: "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" },
+        { name: "Google Gemini", category: "Multimodal AI", img: "Images/gemini.png" },
+        { name: "Anthropic Claude", category: "Constitutional AI / Assistant", img: "Images/Claude.png" },
+        { name: "Midjourney", category: "AI Image Generation", img: "https://upload.wikimedia.org/wikipedia/commons/e/e6/Midjourney_Emblem.png" },
+        { name: "Microsoft Copilot", category: "Productivity AI Assistant", img: "Images/Copilot.jpg" },
+        { name: "DALL-E", category: "AI Artwork Generation", img: "Images/Dalle.jpg" },
+        { name: "GitHub Copilot", category: "AI Code Companion", img: "Images/github.png" },
+        { name: "Perplexity AI", category: "AI Search Engine", img: "Images/perplexity.png" },
+        { name: "DeepSeek", category: "Reasoning & Coding LLM", img: "Images/deep_seek.png" },
+        { name: "Hugging Face", category: "Open Source AI Hub", img: "Images/hugging_face.png" },
+        { name: "Runway", category: "Generative Video AI", img: "Images/runway.png" },
+        { name: "ElevenLabs", category: "AI Voice Synthesis", img: "Images/eleven_labs.png" },
+        { name: "Grok (xAI)", category: "Real-time Conversational LLM", img: "Images/grok.jpg" },
+        { name: "Sora (OpenAI)", category: "Generative Video Model", img: "Images/sora.jpg" },
+        { name: "Meta Llama", category: "Open Foundation LLM", img: "Images/llama.png" },
+        { name: "Mistral AI", category: "Efficient Open-Weight LLMs", img: "Images/Mistral.png" },
+        { name: "Flux (Black Forest Labs)", category: "Next-Gen Image Generation", img: "Images/Black forest labs.jpg" },
+        { name: "Suno AI", category: "AI Music & Audio Composition", img: "Images/suno.png" },
+        { name: "Udio", category: "Generative Music AI", img: "Images/udio.jpg" },
+        { name: "Pika Labs", category: "AI Animation & Video FX", img: "Images/pika.png" },
+        { name: "Cursor", category: "AI-Powered Code Editor", img: "Images/cursor.png" },
+        { name: "Character.ai", category: "Conversational Persona AI", img: "Images/Character ai.jpg" },
+        { name: "Jasper AI", category: "Enterprise Copywriting AI", img: "Images/jasper.jpg" },
+        { name: "Cohere", category: "Enterprise Search & NLP", img: "Images/cohere.png" }
+        ];
+
+        const ALL_AIS = [
+            "ChatGPT (OpenAI)", "Google Gemini", "Anthropic Claude", "Midjourney", 
+            "Microsoft Copilot", "DALL-E", "GitHub Copilot", "Perplexity AI", 
+            "DeepSeek", "Hugging Face", "Runway", "ElevenLabs", "Grok (xAI)", "Sora"
+        ];
 
         // --- AI EMOJI / APPLICATION GUESS ---
         const aiAppsDB = [
@@ -574,11 +607,6 @@
                 explanation: "The AI-generated image of Boy Next Door has a hyper-realistic appearance with perfect symmetry, while the real photo captures natural imperfections and realistic lighting."
             },
             {
-                aiImg: "Ai_Hankuoyu.jpg",
-                realImg: "real_Hankuoyu.jpg",
-                explanation: "The AI-generated image of Hankuoyu has overly smooth skin and a slightly artificial lighting effect, while the real photo captures natural skin texture and realistic lighting conditions."
-            },
-            {
                 aiImg: "Ai_tsaiyingwen.jpg",
                 realImg: "real_Tsaiyingwen.jpg",
                 explanation: "The AI-generated image of Tsai Ying-wen has overly smooth skin and a slightly artificial lighting effect, while the real photo captures natural skin texture and realistic lighting conditions."
@@ -587,8 +615,17 @@
                 aiImg: "Ai_Jolintsai.jpg",
                 realImg: "real_Jolin_Tsai.jpg",
                 explanation: "The AI-generated image of Jolin Tsai has a hyper-realistic appearance with perfect symmetry, while the real photo captures natural imperfections and realistic lighting."
+            },
+            {
+                aiImg: "Ai_Elonmusk.jpg",
+                realImg: "real_Elonmusk.jpg",
+                explanation: "The AI-generated image of Elon Musk has overly smooth skin and a slightly artificial lighting effect, while the real photo captures natural skin texture and realistic lighting conditions."
+            },
+            {
+                aiImg: "Ai_ray.jpg",
+                realImg: "real_ray.png",
+                explanation: "The AI-generated image of Ray has a hyper-realistic appearance with perfect symmetry, while the real photo captures natural imperfections and realistic lighting."
             }
-
         ];
 
         // --- CHINESE TO ENGLISH VOCAB MATCH DB ---
@@ -738,12 +775,14 @@
         let currentFlashcardIndex = 0;
         let currentVocabUnscrambleIndex = 0;
         let currentSentenceIndex = 0;
+        let aiChallengeIndex = 0;
         let appChallengeIndex = 0;
         let synonymChallengeIndex = 0;
         let vocabMatchIndex = 0;
         let realOrAIIndex = 0;
         
         let wordsToFind = [];
+        let activeAIs = [];
         let activeAIApps = [];
         let activeSynonyms = [];
         let activeVocabMatch = [];
@@ -812,6 +851,10 @@
                     <div class="level-card" onclick="startSynonymMatch()">
                          <div style="font-size: 3rem;">🔗</div>
                          <h3>Synonym Match</h3>
+                    </div>
+                    <div class="level-card" onclick="startAIChallenge()">
+                         <div style="font-size: 3rem;">🤖</div>
+                        <h3>Guess the AI</h3>
                     </div>
                     <div class="level-card" onclick="startAppChallenge()">
                         <div style="font-size: 3rem;">💡</div>
@@ -1246,7 +1289,79 @@
             }
         }
 
-        // --- ACTIVITY 7: EMOJI AI GUESS CHALLENGE ---
+        // --- ACTIVITY 7: GUESS THE AI (LOGO CHALLENGE) ---
+        function startAIChallenge() {
+            aiChallengeIndex = 0;
+            activeAIs = [...aiDB].sort(() => 0.5 - Math.random());
+            renderAIChallenge();
+        }
+
+        function renderAIChallenge() {
+            if (aiChallengeIndex >= activeAIs.length) {
+                alert("AI Recon Completed! You recognized every top artificial intelligence platform.");
+                return renderMenu();
+            }
+
+            const currentAI = activeAIs[aiChallengeIndex];
+            
+            let options = [currentAI.name];
+            let pool = ALL_AIS.filter(name => name !== currentAI.name);
+            pool.sort(() => 0.5 - Math.random());
+            options.push(...pool.slice(0, 3));
+            options.sort(() => 0.5 - Math.random()); 
+
+            appContainer.innerHTML = `
+                <button class="action-btn" style="width:auto; margin-bottom: 1rem;" onclick="renderMenu()">← Back to Hub</button>
+                <div class="reading-container animate-pop" style="padding-bottom: 1.5rem; text-align: center;">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-muted); margin-bottom:1rem;">
+                        <span>AI Recognition ${aiChallengeIndex + 1} of ${activeAIs.length}</span>
+                    </div>
+
+                    <div style="background: rgba(0, 243, 255, 0.05); padding: 0.8rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid var(--neon-blue); text-align: center;">
+                        <span style="color: var(--neon-blue); font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight:bold;">Category: ${currentAI.category}</span>
+                    </div>
+
+                    <div id="ai-feedback-zone">
+                        <img src="${currentAI.img}" alt="AI Logo" class="ai-logo-frame" onerror="this.src='https://placehold.co/200x200/ffffff/121222?text=AI+LOGO'">
+                    </div>
+
+                    <h3 style="color: #fff; margin-bottom: 1.2rem;">Which AI platform or model is this?</h3>
+
+                    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        ${options.map(opt => `
+                            <button class="action-btn" style="margin-top: 0; padding: 1.1rem 0.8rem; font-size: 0.95rem; line-height: 1.3;" onclick="checkAIGuess(this, '${opt}', '${currentAI.name}')">${opt}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkAIGuess(btn, selected, correct) {
+            const allButtons = btn.parentElement.querySelectorAll('button');
+            allButtons.forEach(b => b.style.pointerEvents = 'none');
+
+            if (selected === correct) {
+                btn.classList.add('btn-correct');
+                updateXP(20);
+                setTimeout(() => {
+                    aiChallengeIndex++;
+                    renderAIChallenge();
+                }, 1000);
+            } else {
+                btn.classList.add('btn-wrong');
+                const feedbackZone = document.getElementById('ai-feedback-zone');
+                feedbackZone.innerHTML = `
+                    <div style="color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); font-size: 1.3rem; font-weight: bold; margin: 2rem 0; text-transform: uppercase; font-family: 'Orbitron', sans-serif;">
+                        Incorrect! This logo belongs to ${correct}.
+                    </div>`;
+                setTimeout(() => {
+                    aiChallengeIndex++;
+                    renderAIChallenge(); 
+                }, 2200);
+            }
+        }
+
+        // --- ACTIVITY 8: EMOJI AI GUESS CHALLENGE ---
         function startAppChallenge() {
             appChallengeIndex = 0;
             activeAIApps = [...aiAppsDB].sort(() => 0.5 - Math.random());
@@ -1314,7 +1429,7 @@
             }
         }
 
-        // --- ACTIVITY 8: SYNONYM MATCH CHALLENGE ---
+        // --- ACTIVITY 9: SYNONYM MATCH CHALLENGE ---
         function startSynonymMatch() {
             if (!currentLevel.synonyms || currentLevel.synonyms.length === 0) {
                 alert("No synonyms available for this level.");
@@ -1395,7 +1510,7 @@
             }
         }
 
-        // --- ACTIVITY 9: REAL OR AI? CHALLENGE (SIDE-BY-SIDE) ---
+        // --- ACTIVITY 10: REAL OR AI? CHALLENGE (SIDE-BY-SIDE) ---
         function startRealOrAI() {
             realOrAIIndex = 0;
             activeRealOrAI = [...realOrAIPairs].sort(() => 0.5 - Math.random());
